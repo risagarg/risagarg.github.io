@@ -23,7 +23,7 @@
         }
         .back-link:hover { color: #1a1a1a; }
         article {
-            max-width: 700px;
+            max-width: 750px;
             margin: 0 auto;
             padding: 60px 20px;
         }
@@ -32,19 +32,81 @@
             margin-bottom: 10px;
             font-weight: 700;
         }
+        .subtitle {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
         .date {
             color: #999;
             font-size: 0.9rem;
             margin-bottom: 40px;
         }
         h2 {
-            font-size: 1.3rem;
-            margin-top: 40px;
+            font-size: 1.4rem;
+            margin-top: 50px;
             margin-bottom: 20px;
+            font-weight: 700;
+        }
+        h3 {
+            font-size: 1.1rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
             font-weight: 600;
         }
         p { margin-bottom: 20px; }
         strong { font-weight: 600; }
+        em { font-style: italic; }
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 40px 0;
+        }
+        ul, ol {
+            margin-bottom: 20px;
+            margin-left: 25px;
+        }
+        li { margin-bottom: 8px; }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            border-radius: 4px;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            font-size: 0.9rem;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        .toc {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .toc ol {
+            margin-bottom: 0;
+        }
         footer {
             text-align: center;
             padding: 40px 20px;
@@ -60,34 +122,350 @@
     </header>
     <article>
         <h1>The Anatomy of a Circular Prediction: A PPI Case Study</h1>
+        <p class="subtitle">A deep dive into how reasonable decisions compound into metric inflation, and what computational biologists can learn from my mistakes</p>
         <p class="date">January 1, 2026</p>
 
-        <p>I built a machine learning classifier to predict protein-protein interactions (PPIs) with Amyloid-β, achieving an impressive F1 score of 0.91—only to discover the model wasn't learning what I intended.</p>
+        <p>As part of my research, I'm working on computational approaches to target intrinsically disordered proteins (IDPs) – proteins that don't fold into stable 3D structures but instead remain flexible and dynamic and have multiple conformations. Amyloid-β (Aβ), the protein that aggregates into plaques in Alzheimer's disease, is one of these. Understanding how Aβ interacts with other proteins is crucial for understanding Alzheimer's pathology.</p>
 
-        <h2>The Core Problem</h2>
-        <p>I trained models to identify which proteins physically bind Amyloid-β (Aβ), the protein implicated in Alzheimer's disease. However, my four sequential decisions—each reasonable in isolation—compounded into a fatal flaw: the model learned to predict "Alzheimer's-associated proteins" rather than "Aβ physical binders."</p>
+        <p>My long-term goal involves modeling Aβ's aggregation behavior, its disordered regions, and how it recruits other proteins into toxic assemblies. But before any of that, I wanted to start by developing a foundation: <strong>a simple classifier to predict which proteins physically interact with Aβ.</strong> Step 1, which would be the building block for everything else.</p>
 
-        <h2>The Four Decisions That Undermined the Project</h2>
+        <p>I built a machine learning model to do exactly that. After weeks of work, I had what looked like a success: one of my models achieved an F1 score of 0.91. (F1 score measures prediction quality on a scale from 0 to 1, balancing how many true interactions you catch versus how many false positives you raise. Anything above 0.8 is typically considered very good for PPI.)</p>
 
-        <p><strong>Decision 1: Data Expansion</strong><br>
-        Starting with only 556 verified physical interactors, I expanded my positive training set to 1,528 by including text-mined associations and homology-transferred interactions. The problem: these lower-confidence associations were defined by the same signals (GO annotations, expression patterns, brain localization) that became model features.</p>
+        <p>When I dug into what the model had actually learned, I discovered it wasn't predicting just physical protein-protein interactions, but also <strong>predicting which proteins appear in Alzheimer's research papers.</strong> These overlap – proteins studied in Alzheimer's research are more likely to interact with Aβ – but they're not the same thing. My model had learned a shortcut which I never intended.</p>
 
-        <p><strong>Decision 2: Conservative Negative Sampling</strong><br>
-        I excluded brain-expressed, membrane-localized, and neuronal proteins from my negative set, reasoning that a brain-localized protein couldn't interact with brain-localized Aβ in irrelevant tissues. The consequence: positives and negatives became separable by location and expression data alone.</p>
+        <p>The "easy" first step turned out to be full of pitfalls I didn't anticipate. And because I learned so much from debugging this – about data quality, label definitions, and how reasonable choices compound into flawed pipelines – I wanted to share it. Maybe it'll help someone else also avoid the same mistakes before they build an entire research project on a broken foundation.</p>
 
-        <p><strong>Decision 3: Unvalidated Clustering</strong><br>
-        DBSCAN identified 486 "core" and 69 "specialist" interaction clusters. Without testing whether these clusters differed in any biological property, I trained separate models on each group.</p>
+        <p><strong>A note on framing:</strong> The mistakes documented here are not unique to me. Conceptual data leakage – where labels are defined using information that overlaps with features – is endemic in computational biology. A 2012 paper in <em>Nature Methods</em> (Park & Marcotte) showed that many published protein interaction prediction methods suffered from similar evaluation flaws. I'm writing this not because I made an unusual error, but because I caught it, understood it, and think others can learn from it.</p>
 
-        <p><strong>Decision 4: Three-Model Ensemble</strong><br>
-        I combined three XGBoost models (core, specialist, expansion) using logical OR. The expansion model—trained on circular data—achieved F1 of 0.91 and dominated predictions.</p>
+        <div class="toc">
+            <strong>Table of Contents</strong>
+            <ol>
+                <li>The Biological Problem</li>
+                <li>Decision 1: Expanding Limited Training Data</li>
+                <li>Decision 2: Negative Sampling</li>
+                <li>Decision 3: Clustering for Mechanistic Heterogeneity</li>
+                <li>Decision 4: The Three-Model Ensemble</li>
+                <li>The Compounding Effect</li>
+                <li>The Algorithms I used</li>
+                <li>The Numbers</li>
+                <li>This Problem Is Everywhere in Biology</li>
+                <li>What I Should Have Done</li>
+                <li>Lessons Learned</li>
+            </ol>
+        </div>
 
-        <h2>What Actually Happened</h2>
-        <p>The expansion model discovered that positives could be predicted from being "expressed in the brain, localized to membranes, mentioned in Alzheimer's literature"—all properties that defined the positive set, not properties of actual binding.</p>
+        <h2>The Biological Problem</h2>
 
-        <p>The model hadn't learned to predict just physical protein-protein interactions, but also predicting which proteins appear in Alzheimer's research papers. This overlap created illusion of performance masking fundamental circularity.</p>
+        <p>Amyloid-β (Aβ) is a 40-42 amino acid peptide that sits at the center of Alzheimer's disease pathology. Normally, Aβ is produced and cleared normally. In Alzheimer's patients, it accumulates, misfolds, and aggregates into the characteristic plaques.</p>
 
-        <h2>The Lesson</h2>
-        <p>Each choice seemed justified by standard practices in computational biology. Yet together they created "conceptual data leakage"—where labels are implicitly defined by features, a problem that is endemic in computational biology rather than unique to my work.</p>
+        <p>Aβ doesn't cause damage alone, it recruits other proteins into toxic oligomers. It binds receptors that trigger synaptic dysfunction, and It interacts with chaperones that modulate its aggregation. <strong>Understanding which proteins physically interact with Aβ is essential for understanding and treating Alzheimer's disease.</strong></p>
+
+        <p>The experimental methods for detecting protein-protein interactions are slow and expensive:</p>
+
+        <table>
+            <tr><th>Method</th><th>What it detects</th><th>Throughput</th><th>Limitations</th></tr>
+            <tr><td>Co-immunoprecipitation (Co-IP)</td><td>Proteins in complex with bait</td><td>Medium</td><td>Can't distinguish direct from indirect binding</td></tr>
+            <tr><td>Yeast two-hybrid (Y2H)</td><td>Direct binary interactions</td><td>High</td><td>High false positive rate, non-native environment</td></tr>
+            <tr><td>Cross-linking mass spec (XL-MS)</td><td>Proteins in close proximity</td><td>Medium</td><td>Proximity ≠ interaction</td></tr>
+            <tr><td>Surface plasmon resonance (SPR)</td><td>Direct binding kinetics</td><td>Low</td><td>Requires purified proteins</td></tr>
+        </table>
+
+        <p>There are ~20,000 reviewed human protein-coding genes in UniProt Swiss-Prot, and there are hundreds of millions of possible pairwise interactions. We can't test them all experimentally. Computational prediction methods exist to prioritize candidates for experimental validation.</p>
+
+        <p>That was my goal: build a classifier that takes protein features as input and predicts whether a given protein physically interacts with Aβ, as a first step in my research.</p>
+
+        <h2>Decision 1: Expanding Limited Training Data</h2>
+
+        <p>I started with experimentally verified physical interactors of Aβ from curated databases:</p>
+
+        <ul>
+            <li><strong>STRING</strong> (score ≥ 700, "high confidence"): Direct experimental evidence</li>
+            <li><strong>BioGRID</strong>: Physical interaction annotations from literature curation</li>
+            <li><strong>IntAct</strong>: Curated molecular interactions</li>
+        </ul>
+
+        <p>After filtering for high-quality evidence, I had <strong>556 verified physical interactors</strong>.</p>
+
+        <p>556 positives is not a lot for a machine learning pipeline. With 82,000+ features (ESM-2 embeddings + GO terms + expression data + PTMs + domains), 556 positives felt dangerously small, and I was worried about the model overfitting. For this reason, I expanded the positive set by including lower-confidence associations:</p>
+
+        <pre><code># Original: 556 verified physical interactions
+verified_positives = string_df[string_df['combined_score'] >= 700]
+
+# Expansion: Include additional evidence types
+text_mined = string_df[string_df['textmining_score'] >= 400]
+homology_transferred = string_df[string_df['homology_score'] > 0]
+genetic_interactions = biogrid_df[biogrid_df['type'] == 'genetic']
+
+# Combined: 1,528 additional "low-confidence positives"
+expansion_positives = pd.concat([text_mined, homology_transferred, genetic_interactions])</code></pre>
+
+        <table>
+            <tr><th>Evidence Type</th><th>N proteins</th><th>What it actually means</th></tr>
+            <tr><td>Verified physical</td><td>556</td><td>Direct experimental evidence of binding</td></tr>
+            <tr><td>Text-mined</td><td>~800</td><td>Co-mentioned with Aβ in PubMed abstracts</td></tr>
+            <tr><td>Homology transfer</td><td>~400</td><td>Ortholog interacts with Aβ in mouse/rat</td></tr>
+            <tr><td>Genetic interaction</td><td>~300</td><td>Synthetic lethality, suppression, etc.</td></tr>
+        </table>
+
+        <p>More data should help with generalization, and the additional proteins I added were not random, they had some relationship to Aβ. Text mining captures real biological associations even if the underlying mechanism isn't direct binding. Homology transfer is a standard approach in computational biology. However, what I didn't realize was that these evidence types aren't independent of my features. They're <em>defined by</em> the same signals:</p>
+
+        <ul>
+            <li>Text mining finds proteins co-mentioned with Aβ in papers. What proteins appear in Alzheimer's papers? Brain-expressed proteins, synaptic proteins, proteins with GO annotations related to neurodegeneration.</li>
+            <li>Homology transfer propagates interactions from orthologs. Orthologous proteins have similar sequences → similar protein embeddings.</li>
+            <li>Genetic interactions indicate functional relationships. Functionally related proteins share pathways, GO terms, expression patterns.</li>
+        </ul>
+
+        <p>My classifier's features overlapped substantially with the signals used to define the expanded positive set. The model wasn't learning "what physically binds Aβ", but was learning to reconstruct the database annotations.</p>
+
+        <h2>Decision 2: Brain-Specific Negative Sampling</h2>
+
+        <p>PPI prediction is a positive-unlabeled (PU) learning problem. We know which proteins interact (positives), but we don't have experimentally verified non-interactions (negatives). If I randomly sample proteins as negatives, many might be true interactors we just haven't discovered yet. This contaminates the negative set with false negatives.</p>
+
+        <p>I used my biological knowledge about Aβ to construct high-confidence negatives. Aβ is a brain-localized protein – it's produced by neurons, accumulates at synapses, and causes pathology in specific brain regions. A protein that isn't expressed in the brain probably can't interact with Aβ in any biologically meaningful context.</p>
+
+        <pre><code># Exclude proteins that COULD plausibly interact with brain-localized Aβ
+
+# Step 1: Remove known interactors
+negatives = all_proteins - known_interactors
+
+# Step 2: Remove STRING-associated proteins (any evidence type)
+negatives = negatives - string_associated[score >= 400]
+
+# Step 3: Remove brain-expressed proteins
+brain_tissues = ['cortex', 'hippocampus', 'cerebellum', 'hypothalamus',
+                 'substantia_nigra', 'amygdala', 'caudate', 'putamen']
+negatives = negatives - proteins_expressed_in(brain_tissues)
+
+# Step 4: Remove neuronally-localized proteins
+neuronal_locations = ['synapse', 'neurite', 'growth_cone', 'axon',
+                      'dendrite', 'synaptic_vesicle', 'postsynaptic']
+negatives = negatives - proteins_localized_to(neuronal_locations)
+
+# Step 5: Remove membrane proteins (where Aβ accumulates)
+membrane_locations = ['cell_membrane', 'plasma_membrane', 'membrane']
+negatives = negatives - proteins_localized_to(membrane_locations)</code></pre>
+
+        <p>After all exclusions, I had 5,399 high-confidence negatives. This is conservative negative sampling – a standard practice in PPI prediction. I'm ensuring that negatives are truly unlikely to interact with my brain-localized target. The biological reasoning is sound: a protein expressed only in the liver probably doesn't interact with a brain protein.</p>
+
+        <p>However, what I failed to recognize at this moment was that my positive set (especially the expansion data) consisted of proteins that:</p>
+
+        <ul>
+            <li>Are expressed in the brain</li>
+            <li>Are localized to synapses, membranes, and neuronal compartments</li>
+            <li>Have GO terms related to neuronal function</li>
+            <li>Appear in Alzheimer's literature</li>
+        </ul>
+
+        <p>My negative set explicitly excluded proteins with these properties.</p>
+
+        <p>Because of this, the classifier didn't need to learn anything about protein-protein interactions. It just needed to learn:</p>
+
+        <pre><code>IF brain_expressed AND membrane_localized → POSITIVE
+IF NOT brain_expressed AND NOT neuronal → NEGATIVE</code></pre>
+
+        <p>This is feature leakage at the conceptual level. The labels were defined by features I then used for prediction.</p>
+
+        <h2>Decision 3: Clustering for Mechanistic Heterogeneity</h2>
+
+        <p>Some proteins bind Aβ through conserved domain-domain interfaces. Others interact transiently through short linear motifs. Some are direct physical binders; others are components of larger complexes. Training a single classifier on heterogeneous interaction types might produce a model that's mediocre at all of them.</p>
+
+        <p>I used DBSCAN (Density-Based Spatial Clustering of Applications with Noise) to identify subpopulations within my 556 verified positives:</p>
+
+        <pre><code>from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import DBSCAN
+
+# Prepare features for clustering
+scaler = StandardScaler()
+positives_scaled = scaler.fit_transform(verified_positive_features)
+
+# Reduce dimensionality (retain 95% variance)
+pca = PCA(n_components=0.95, random_state=42)
+positives_pca = pca.fit_transform(positives_scaled)
+# Result: 373 dimensions
+
+# Cluster
+dbscan = DBSCAN(eps=150, min_samples=10)
+cluster_labels = dbscan.fit_predict(positives_pca)
+
+# Results:
+# Cluster 0 (core):     486 proteins
+# Cluster -1 (noise):    69 proteins (outliers)</code></pre>
+
+        <p>I hypothesized that Cluster 0 represented "typical" interactions with common mechanistic features, while the 69 outliers represented "specialist" interactions with unusual properties.</p>
+
+        <p>The problem is that DBSCAN operates purely on feature space geometry. It found one dense region and 69 points that didn't fit. But being dense in 373-dimensional PCA space doesn't mean that it is biologically coherent, and the 69 outliers could be proteins with unusual sequence lengths that shifted their ESM-2 embeddings, proteins from understudied families with sparse GO annotations, or simply random variation in a high-dimensional projection.</p>
+
+        <p>Without validation, I had no evidence that my clusters corresponded to anything biological. I was splitting my training data based on an algorithm's opinion about density, then retrofitting a biological interpretation ("mechanistic heterogeneity") onto an arbitrary partition.</p>
+
+        <h2>Decision 4: The Three-Model Ensemble</h2>
+
+        <p>I had three separate groups of "positive" proteins. The core cluster contained 486 verified physical interactors that DBSCAN placed in the main dense region. The specialist group contained 69 verified interactors that DBSCAN labeled as outliers. The expansion set contained the 1,528 text-mined, homology-transferred, and genetic interactions I had added in Decision 1.</p>
+
+        <p>Rather than lumping them all together, I trained a separate model on each group. The reasoning was that each model could specialize, the core model would learn "typical" interaction patterns, the specialist model would catch unusual cases the core model might miss, and the expansion model would leverage the additional training signal.</p>
+
+        <p>Each model outputs a probability that a protein interacts with Aβ. The final ensemble prediction was "positive" if any of the three models predicted positive – a logical OR combination.</p>
+
+        <p>I evaluated each model separately using cross-validation:</p>
+
+        <table>
+            <tr><th>Model</th><th>What it was trained on</th><th>CV F1 Score</th><th>What this means</th></tr>
+            <tr><td>Core</td><td>486 verified physical interactors</td><td>0.48</td><td>Struggled to find the signal</td></tr>
+            <tr><td>Specialist</td><td>69 DBSCAN outliers</td><td>0.53</td><td>Unstable (too few examples)</td></tr>
+            <tr><td>Expansion</td><td>1,528 text-mined/homology associations</td><td><strong>0.91</strong></td><td>Suspiciously good</td></tr>
+        </table>
+
+        <p>The expansion model – trained on my "lower-confidence" data – dramatically outperformed the core model trained on verified physical interactions.</p>
+
+        <p>The expansion positives were easy to predict because they were defined by the same features used for prediction.</p>
+
+        <h2>The Compounding Effect</h2>
+
+        <p>Each decision was defensible in isolation, but not together.</p>
+
+        <p>I checked for data leakage, and I verified that no holdout proteins appeared in training. I ensured feature selection was done on training data only. I ran cross-validation. None of those checks caught the conceptual leakage – which was the fact that my labels were defined by my features.</p>
+
+        <h2>The Algorithms I Used</h2>
+
+        <p>I want to explain the algorithms I used, because understanding them reveals why they couldn't save me from the data problem.</p>
+
+        <p>The key insight is this: machine learning algorithms are optimization tools. They find patterns in data that separate your classes. They don't know whether those patterns are biologically meaningful or artifacts of how you constructed your dataset.</p>
+
+        <h3>XGBoost: Gradient Boosted Decision Trees</h3>
+
+        <p>XGBoost (Chen & Guestrin, 2016) was my primary classifier. A decision tree is a flowchart-like model that asks yes/no questions about your features. "Is brain_expressed = true? If yes, go left. Is membrane_localized = true? If yes, predict positive." Simple, interpretable, but often too weak on its own.</p>
+
+        <p>Gradient boosting builds many decision trees sequentially, where each new tree focuses on correcting the mistakes of the previous trees.</p>
+
+        <pre><code># XGBoost will exploit ANY signal in the features
+model = xgb.XGBClassifier(
+    n_estimators=200,
+    max_depth=6,
+    learning_rate=0.1,
+    scale_pos_weight=len(negatives)/len(positives)  # Handle imbalance
+)
+
+model.fit(X_train, y_train)
+
+# Top features learned by my expansion model:
+# 1. loc_Cell membrane       (SHAP importance: 1.36)
+# 2. loc_Membrane            (SHAP importance: 0.66)
+# 3. loc_Secreted            (SHAP importance: 0.43)
+# 4. brain_expressed         (SHAP importance: 0.51)
+# 5. go_c_plasma membrane    (SHAP importance: 0.62)</code></pre>
+
+        <p>The model did exactly what it was supposed to do, which was find the features that separate positives from negatives. The problem was that those features separated "Alzheimer's-associated proteins" from "non-brain proteins" – not "Aβ binders" from "non-binders."</p>
+
+        <h3>ESM-2: Protein Language Model Embeddings</h3>
+
+        <p>ESM-2 (Lin et al., 2023) is a transformer model trained on protein sequences using masked language modeling. Training on ~43 million protein sequences, ESM-2 learns representations that encode evolutionary conservation patterns, structural preferences, and functional motifs.</p>
+
+        <p>ESM-2 embeddings are powerful, and they encode genuine biological signal about protein structure and function. But they also encode the same signals (functional categories, expression patterns, localization) that my labels were defined by.</p>
+
+        <h2>Results</h2>
+
+        <p>After understanding the problem, I ran the analysis of training only on verified physical interactions.</p>
+
+        <table>
+            <tr><th>Configuration</th><th>F1 Score</th><th>What it means</th></tr>
+            <tr><td>Expansion model (text-mining + homology)</td><td>0.91</td><td>Predicting database associations</td></tr>
+            <tr><td>Three-model ensemble</td><td>0.79</td><td>Dominated by expansion model</td></tr>
+            <tr><td>Core model only (verified physical)</td><td>0.39</td><td>Actual physical interaction signal</td></tr>
+            <tr><td>Single model on verified + clean negatives</td><td>~0.55-0.65</td><td>Realistic expectation</td></tr>
+        </table>
+
+        <p>The honest number is <strong>F1 ≈ 0.55-0.65</strong> for physical interaction prediction.</p>
+
+        <p>This number is useful, as we are going from random guessing to F1 = 0.65 means that if you test the model's top predictions in the lab, you'll find real interactors about twice as often as if you picked proteins randomly.</p>
+
+        <h2>This Problem Is Everywhere in Biology</h2>
+
+        <p>Conceptual data leakage and circular predictions are endemic in computational biology.</p>
+
+        <p><strong>Example 1: Gene Expression Cancer Classification</strong><br>
+        The paper claims: "Our model predicts cancer type from gene expression with 95% accuracy."<br>
+        The problem: Cancer type labels were assigned partly based on expression of marker genes. The model learns to recognize the markers, not the underlying biology.</p>
+
+        <p><strong>Example 2: Drug-Target Interaction Prediction</strong><br>
+        The paper claims: "Our model predicts drug-target interactions with AUROC = 0.92."<br>
+        The problem: Training data from ChEMBL is biased toward "druggable" protein families (kinases, GPCRs). The model learns "is this a kinase?" not "does this drug bind this target?"</p>
+
+        <p><strong>Example 3: Protein Function Prediction</strong><br>
+        The paper claims: "Our model predicts GO terms from sequence with F1 = 0.85."<br>
+        The problem: GO term propagation means that if a protein has one term, it likely has related terms. The model learns the GO hierarchy structure rather than sequence-function relationships.</p>
+
+        <h2>What I Should Have Done</h2>
+
+        <h3>1. Defined the Prediction Task Precisely</h3>
+
+        <p>Before writing any code, I should have articulated exactly what question I was trying to answer. "Predict Aβ interactors" sounds specific, but is actually ambiguous. Physical binding partners verified by co-immunoprecipitation are different from genetic interactors identified through synthetic lethality screens, which are different from proteins co-mentioned with Aβ in PubMed abstracts.</p>
+
+        <h3>2. Validated Negative Sampling Doesn't Create Trivial Separation</h3>
+
+        <p>A simple diagnostic can reveal whether your negative sampling strategy has inadvertently made the classification task trivial:</p>
+
+        <pre><code># Check: can a simple classifier separate positives from negatives
+# using ONLY the features used for negative filtering?
+
+filtering_features = ['brain_expressed', 'membrane_localized', 'neuronal']
+
+simple_model = LogisticRegression()
+simple_model.fit(train_df[filtering_features], train_df['label'])
+
+filter_f1 = f1_score(test_df['label'], simple_model.predict(test_df[filtering_features]))
+
+if filter_f1 > 0.7:
+    print("WARNING: Classes are separable by negative filtering criteria!")
+    print("Your model may be learning the filtering rule, not biology.")</code></pre>
+
+        <h3>3. Reported Honest Baselines</h3>
+
+        <p>If a sophisticated ensemble only marginally outperforms a logistic regression on the features used for negative sampling, the ensemble isn't adding value – it's just learning the same signal with more parameters.</p>
+
+        <h2>Lessons Learned</h2>
+
+        <h3>On Label Provenance</h3>
+
+        <p>The most important question in any supervised learning project are looking at the labels. Labels in biological databases are annotations generated through specific experimental methods, curation criteria, and inference procedures, each with its own biases and limitations.</p>
+
+        <h3>On Suspiciously Good Performance</h3>
+
+        <p>In biological prediction tasks, F1 scores above 0.9 should trigger skepticism. Biology is inherently noisy – protein interactions are context-dependent, annotations are incomplete, and experimental measurements have error rates. When a model achieves near-perfect performance on biological data, the most likely explanation isn't that you've solved the problem; it's that the problem has been inadvertently simplified.</p>
+
+        <h3>On the Limits of Algorithms</h3>
+
+        <p>XGBoost, random forests, neural networks – these are optimization tools. They find whatever features best separate the classes you give them. They cannot distinguish between features that reflect genuine biology and features that reflect artifacts of your data construction process. If your classes are separable because of how you defined them rather than because of the underlying biology, the algorithm will learn that definition.</p>
+
+        <p>No amount of hyperparameter tuning, regularization, or architectural innovation fixes a data problem. The algorithm is doing exactly what you asked it to do; the issue is that you asked the wrong question.</p>
+
+        <h2>Conclusion</h2>
+
+        <p>I built a model to predict physical protein-protein interactions. Through a series of reasonable decisions, I created a classifier that achieved F1 = 0.91 by predicting which proteins appear in Alzheimer's papers.</p>
+
+        <p>The decisions that led there:</p>
+
+        <ol>
+            <li>Expanding limited training data with text-mined and homology-transferred associations</li>
+            <li>Excluding brain-expressed proteins from negatives for biological plausibility</li>
+            <li>Building a three-model ensemble where the expansion model dominated</li>
+        </ol>
+
+        <p>The honest performance for physical interaction prediction is F1 ≈ 0.55-0.65.</p>
+
+        <hr>
+
+        <p><strong>Code Availability:</strong> The complete implementation, including the flawed pipeline and corrected version, is available at: github.com/risagarg/protein_interactor_prediction</p>
+
+        <p><strong>References:</strong></p>
+        <ul>
+            <li>Chen, T., & Guestrin, C. (2016). XGBoost: A scalable tree boosting system. KDD.</li>
+            <li>Ester, M., et al. (1996). A density-based algorithm for discovering clusters in large spatial databases with noise. KDD.</li>
+            <li>Lin, Z., et al. (2023). Evolutionary-scale prediction of atomic-level protein structure with a language model. Science.</li>
+            <li>Park, Y., & Marcotte, E. M. (2012). Flaws in evaluation schemes for pair-input computational predictions. Nature Methods.</li>
+            <li>Szklarczyk, D., et al. (2023). The STRING database in 2023. Nucleic Acids Research.</li>
+        </ul>
+
+        <p><em>This post documents real mistakes made during real research. If it helps you avoid similar pitfalls, it was worth it!</em></p>
     </article>
     <footer>&copy; 2024 Risa Garg</footer>
 </body>
