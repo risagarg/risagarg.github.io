@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Anatomy of a Circular Prediction: A PPI Case Study - Risa Garg</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.8;
+        }
+        header {
+            padding: 40px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .back-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back-link:hover { color: #1a1a1a; }
+        article {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .date {
+            color: #999;
+            font-size: 0.9rem;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 1.3rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        p { margin-bottom: 20px; }
+        strong { font-weight: 600; }
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../index.html" class="back-link">&larr; Back to home</a>
+    </header>
+    <article>
+        <h1>The Anatomy of a Circular Prediction: A PPI Case Study</h1>
+        <p class="date">January 1, 2026</p>
+
+        <p>I built a machine learning classifier to predict protein-protein interactions (PPIs) with Amyloid-β, achieving an impressive F1 score of 0.91—only to discover the model wasn't learning what I intended.</p>
+
+        <h2>The Core Problem</h2>
+        <p>I trained models to identify which proteins physically bind Amyloid-β (Aβ), the protein implicated in Alzheimer's disease. However, my four sequential decisions—each reasonable in isolation—compounded into a fatal flaw: the model learned to predict "Alzheimer's-associated proteins" rather than "Aβ physical binders."</p>
+
+        <h2>The Four Decisions That Undermined the Project</h2>
+
+        <p><strong>Decision 1: Data Expansion</strong><br>
+        Starting with only 556 verified physical interactors, I expanded my positive training set to 1,528 by including text-mined associations and homology-transferred interactions. The problem: these lower-confidence associations were defined by the same signals (GO annotations, expression patterns, brain localization) that became model features.</p>
+
+        <p><strong>Decision 2: Conservative Negative Sampling</strong><br>
+        I excluded brain-expressed, membrane-localized, and neuronal proteins from my negative set, reasoning that a brain-localized protein couldn't interact with brain-localized Aβ in irrelevant tissues. The consequence: positives and negatives became separable by location and expression data alone.</p>
+
+        <p><strong>Decision 3: Unvalidated Clustering</strong><br>
+        DBSCAN identified 486 "core" and 69 "specialist" interaction clusters. Without testing whether these clusters differed in any biological property, I trained separate models on each group.</p>
+
+        <p><strong>Decision 4: Three-Model Ensemble</strong><br>
+        I combined three XGBoost models (core, specialist, expansion) using logical OR. The expansion model—trained on circular data—achieved F1 of 0.91 and dominated predictions.</p>
+
+        <h2>What Actually Happened</h2>
+        <p>The expansion model discovered that positives could be predicted from being "expressed in the brain, localized to membranes, mentioned in Alzheimer's literature"—all properties that defined the positive set, not properties of actual binding.</p>
+
+        <p>The model hadn't learned to predict just physical protein-protein interactions, but also predicting which proteins appear in Alzheimer's research papers. This overlap created illusion of performance masking fundamental circularity.</p>
+
+        <h2>The Lesson</h2>
+        <p>Each choice seemed justified by standard practices in computational biology. Yet together they created "conceptual data leakage"—where labels are implicitly defined by features, a problem that is endemic in computational biology rather than unique to my work.</p>
+    </article>
+    <footer>&copy; 2024 Risa Garg</footer>
+</body>
+</html>

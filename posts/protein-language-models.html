@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Does it Mean to Design Biology from Scratch? (Part I) - Risa Garg</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.8;
+        }
+        header {
+            padding: 40px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .back-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back-link:hover { color: #1a1a1a; }
+        article {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .date {
+            color: #999;
+            font-size: 0.9rem;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 1.3rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        p { margin-bottom: 20px; }
+        strong { font-weight: 600; }
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../index.html" class="back-link">&larr; Back to home</a>
+    </header>
+    <article>
+        <h1>What Does it Mean to Design Biology from Scratch? A Deep Dive into How Protein Language Models Work (Part I)</h1>
+        <p class="date">April 5, 2025</p>
+
+        <p>Artificial intelligence is revolutionizing protein design through "generative biology." Let me explain how this works.</p>
+
+        <h2>Core Concept</h2>
+        <p>Proteins function like sentences, where amino acids are the words. The sequence determines structure and function, much like word order determines meaning. This "grammar of proteins" can now be learned using artificial intelligence models similar to those powering ChatGPT.</p>
+
+        <h2>Autoregressive Models</h2>
+        <p>These models predict the next amino acid based on previous ones. They assign probability scores to sequences, enabling both generation of novel proteins and ranking of designed sequences by likelihood of functionality.</p>
+
+        <h2>Masked Language Models</h2>
+        <p>These fill in missing positions using bidirectional context. Interestingly, these models implicitly learn how the protein will fold despite training only on sequences, with attention patterns aligning to actual physical contact maps.</p>
+
+        <h2>Technical Foundation</h2>
+        <p>Both approaches rely on Transformer architecture, enabling simultaneous processing of entire sequences rather than sequential analysis. This breakthrough technology allows researchers at companies like Profluent to design completely novel biological tools, including new enzymes and CRISPR variants.</p>
+    </article>
+    <footer>&copy; 2024 Risa Garg</footer>
+</body>
+</html>
