@@ -44,9 +44,13 @@
             font-weight: 600;
         }
         p { margin-bottom: 20px; }
-        ul { margin-bottom: 20px; margin-left: 20px; }
-        li { margin-bottom: 10px; }
         strong { font-weight: 600; }
+        em { font-style: italic; }
+        ol, ul {
+            margin-bottom: 20px;
+            margin-left: 25px;
+        }
+        li { margin-bottom: 10px; }
         footer {
             text-align: center;
             padding: 40px 20px;
@@ -64,25 +68,90 @@
         <h1>From Discovering Proteins to Designing Biology</h1>
         <p class="date">April 10, 2025</p>
 
-        <p>Protein language models (PLMs) are transforming biological research from discovery to design. PLMs enable scientists to generate entirely new proteins rather than searching nature's libraries, marking a fundamental shift in biotech.</p>
+        <p>Hi again — welcome back!</p>
 
-        <h2>De Novo Protein Design</h2>
-        <p>Profluent's OpenCRISPR-1 project generated a novel CRISPR-associated enzyme without natural templates. The protein functioned at high specificity for genome editing. Profluent's open-source strategy contrasts with typical patent approaches, betting that platform dominance matters more long-term than owning individual sequences.</p>
+        <p>Last time, we walked through how protein language models (PLMs) work — and how they learn the "grammar of life."</p>
 
-        <h2>Protein Evolution</h2>
-        <p>LabGenius closes the loop between computational predictions and laboratory validation. Their platform learns dynamically from experimental results, enabling smarter protein optimization compared to traditional random mutagenesis approaches.</p>
+        <p>But once we learn that protein language models can actually generate brand-new proteins, it opens up a much bigger question:</p>
 
-        <h2>Drug Development</h2>
-        <p>Absci incorporates manufacturability into models using paired sequence-expression datasets. This addresses a critical challenge: over 50% of antibody candidates fail preclinical stages due to instability or poor expression.</p>
+        <p><strong>What can we actually build?</strong></p>
 
-        <h2>Future Directions</h2>
-        <ul>
-            <li>Condition-specific protein design for particular environments</li>
-            <li>Dynamic proteins that adapt to cellular signals</li>
-            <li>Industrial biocatalysis for carbon capture and clean energy</li>
-        </ul>
+        <p>For a long time, the goal in biology and biotech was discovery, searching nature's genetic libraries, finding molecules that could treat disease, and tweaking them as needed.</p>
 
-        <p>While exciting progress exists, real-world clinical deployment remains in early stages. The shift from biological discovery to design represents something transformative.</p>
+        <p>But PLMs let us design biology directly.</p>
+
+        <p>We're already seeing signs of what that future could look like — and some of the challenges we'll need to solve along the way.</p>
+
+        <h2>1. De Novo Protein Design (creating proteins that don't exist in nature)</h2>
+
+        <p>Before PLMs, designing a new protein was almost impossible because small sequence changes can create huge, unpredictable shifts in structure. (and in proteins, structure == function)</p>
+
+        <p>Even structure prediction (what AlphaFold does) was a huge leap for the future of biotech. But with PLMs, we can actually generate functional proteins.</p>
+
+        <p>These large-scale language models trained on natural proteins can generalize the rules of folding and function well enough to generate entirely new sequences, and one company, <strong>Profluent</strong>, shows us this transition in action.</p>
+
+        <p>Their OpenCRISPR-1 project used a large autoregressive model to generate a novel CRISPR-associated enzyme without using a natural template, and when they validated it in cells, it actually functioned at high specificity for genome editing.</p>
+
+        <p>That's significant because folding alone isn't enough — the protein has to carry out specific tasks of DNA cleavage and editing, with minimal off-target effects.</p>
+
+        <p>What also stands out to me about Profluent is their open-source strategy.</p>
+
+        <p>Instead of patenting the sequence immediately, Profluent released it openly, which is a really interesting strategy of betting that platform dominance, or becoming the place researchers and companies turn to for CRISPR innovation — will matter more in the long run than owning a single editor.</p>
+
+        <p>In an ecosystem like genome editing, where innovation is constantly on the go, being the first to open standards can be a long-term strategic advantage, similar to the way Linux was for operating systems.</p>
+
+        <h2>2. Protein Evolution</h2>
+
+        <p>Directed evolution is the process of mutating proteins to improve them, which is a large workhorse in the biotech industry. Traditional methods are slow and inefficient: random mutagenesis, massive screening, and lots of failed variants.</p>
+
+        <p>But PLMs change the game. Because they're trained on sequence-function relationships across evolutionary space, they can prioritize the mutations that are more likely to preserve or enhance function.</p>
+
+        <p><strong>LabGenius</strong> is taking this a step further by closing the loop between in silico predictions (on the computer) and in vitro validation (laboratory validation). Their platform doesn't just propose mutations; it actually learns dynamically from experimental results.</p>
+
+        <p>If a set of mutations works better, that information updates the model's understanding for the next round.</p>
+
+        <p>This is important because protein landscapes are constantly evolving through natural selection and mutation, and PLMs can help map these landscapes more intelligently, suggesting pathways that traditional random mutagenesis would miss.</p>
+
+        <h2>3. Drug Development</h2>
+
+        <p>Drug development is about designing proteins that can survive the realities of production, delivery, and human biology.</p>
+
+        <p>Proteins need to be expressible in human cell lines, stable under physiological conditions, and non-immunogenic enough to survive in patients.</p>
+
+        <p><strong>Absci</strong> is one of the companies doing the work of baking biological manufacturability into the model itself.</p>
+
+        <p>Instead of training on sequence alone, they use paired sequence-expression datasets, which teaches their models what kinds of sequences are actually likely to be produced by real cells. This matters because over 50% of antibody protein candidates fail during preclinical or early clinical stages, often because they're unstable, poorly expressed, or rapidly degraded.</p>
+
+        <p>If Absci (and others following this path) succeed, this shows us how PLMs could not only generate new candidates faster, but also filter for manufacturability and viability upfront, compressing timelines and reducing wasted investment.</p>
+
+        <p>We've already seen PLMs generate proteins that fold and function, and many tools have helped validate many of these designs in silico. Some, like Profluent's OpenCRISPR-1, have been validated in vitro and in cell lines.</p>
+
+        <p>But real-world deployment — pushing these proteins through preclinical and clinical stages — is still in its earliest days.</p>
+
+        <p>There's a big gap between a protein working in a dish and surviving the complexity of a human body.</p>
+
+        <p>Looking ahead, I think we'll see several exciting directions:</p>
+
+        <ol>
+            <li><strong>Condition-Specific Design</strong><br>
+            Future PLMs could generate proteins optimized for specific environments: low pH (tumors), oxidative stress (inflammation), intracellular expression, and more.</li>
+
+            <li><strong>Dynamic Proteins</strong><br>
+            Many natural proteins change shape depending on cellular signals. PLMs could help design "smart" proteins that adapt dynamically inside living systems, opening up whole new kinds of therapeutics.</li>
+
+            <li><strong>Industrial Biocatalysis</strong><br>
+            Beyond medicine, PLMs could accelerate enzyme design for carbon capture, plastic degradation, clean energy, and green chemistry, which are all fields where traditional discovery is far too slow.</li>
+        </ol>
+
+        <p>To me, the most exciting shift isn't just that biotech is getting faster. It's that we're moving from finding biology to designing it.</p>
+
+        <p>It's exciting, but it's also early.</p>
+
+        <p>Still, it feels like the beginning of something big, and it's a space I'm excited to keep watching.</p>
+
+        <p>Thanks for reading — and see you next time!</p>
+
+        <p>– Risa</p>
     </article>
     <footer>&copy; 2024 Risa Garg</footer>
 </body>

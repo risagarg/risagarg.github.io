@@ -45,6 +45,12 @@
         }
         p { margin-bottom: 20px; }
         strong { font-weight: 600; }
+        em { font-style: italic; }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            font-size: 0.9rem;
+        }
         footer {
             text-align: center;
             padding: 40px 20px;
@@ -62,19 +68,72 @@
         <h1>What Does it Mean to Design Biology from Scratch? A Deep Dive into How Protein Language Models Work (Part I)</h1>
         <p class="date">April 5, 2025</p>
 
-        <p>Artificial intelligence is revolutionizing protein design through "generative biology." Let me explain how this works.</p>
+        <p>Hi! My name is Risa, I'm a Computational Biology major and a science enthusiast at the University of Pennsylvania. I'm here to demystify the science behind the biotech headlines: from how proteins are made to how we might soon be designing entire biological systems… from scratch.</p>
 
-        <h2>Core Concept</h2>
-        <p>Proteins function like sentences, where amino acids are the words. The sequence determines structure and function, much like word order determines meaning. This "grammar of proteins" can now be learned using artificial intelligence models similar to those powering ChatGPT.</p>
+        <p>Today, "biotechnology" feels like a buzzword. We hear it everywhere—in headlines about breakthrough drugs, billion-dollar startups, and, of course, AI doing everything from discovering molecules to curing diseases. But what do these breakthroughs actually look like under the hood? How does progress <em>really</em> happen in this field? And what role does AI play in it all?</p>
 
-        <h2>Autoregressive Models</h2>
-        <p>These models predict the next amino acid based on previous ones. They assign probability scores to sequences, enabling both generation of novel proteins and ranking of designed sequences by likelihood of functionality.</p>
+        <p>Let's zoom in on one of the most exciting frontiers right now: using language models — the same tech that powers ChatGPT — to design brand-new proteins. Not just predicting structure, like AlphaFold has made famous, but actually generating DNA sequences that have never been seen before.</p>
 
-        <h2>Masked Language Models</h2>
-        <p>These fill in missing positions using bidirectional context. Interestingly, these models implicitly learn how the protein will fold despite training only on sequences, with attention patterns aligning to actual physical contact maps.</p>
+        <p>This space is often called <strong>generative biology</strong>, and platforms like Profluent are right at the center of it. They're building models trained on massive protein sequence datasets (some of which are open source on GitHub) to create new enzymes, new CRISPR tools, and eventually, entirely new biological capabilities.</p>
 
-        <h2>Technical Foundation</h2>
-        <p>Both approaches rely on Transformer architecture, enabling simultaneous processing of entire sequences rather than sequential analysis. This breakthrough technology allows researchers at companies like Profluent to design completely novel biological tools, including new enzymes and CRISPR variants.</p>
+        <p>So… how does that even work?</p>
+
+        <p>Let's break it down.</p>
+
+        <p><strong>Proteins are like sentences.</strong> Proteins are a string of amino acids (like words in a sentence), and the order of the amino acids determines how the protein folds and functions (like the order of words in a sentence determines its meaning). The sequence data is like the grammar of life.</p>
+
+        <p>Understanding the relationship between sequence, structure, and function is one of the major focuses of biological research. Scientists have tried to understand this "grammar of proteins" through evolutions, experiments, and structure prediction. But in the last few years, we have begun to learn this grammar using models similar to natural language processing models (NLPs). These models, which are called protein language models (PLMs) are trained on the billions of known protein sequences from across the evolutionary tree of life. As GPT can complete your sentences, a protein language model can complete a protein, or generate an entirely new one using known patterns.</p>
+
+        <p>PLMs fall into two main categories, each inspired by different NLP models, and each with different goals and training objectives to learn the language of proteins:</p>
+
+        <h2>1. Autoregressive Models</h2>
+
+        <p>Autoregressive models work by predicting the next amino acid in a sequence – given the previous ones. This model is trained on actual protein sequences, and at each step, it tries to guess what comes next.</p>
+
+        <p>An example input of a protein fragment would be:</p>
+        <p><code>M-E-T-?-?-?</code></p>
+        <p>The model has a target to: Predict A, then G, then L…</p>
+
+        <p>Each prediction is made by using only the amino acids that came before it — this is called causal masking, where future tokens are hidden from the model during training.</p>
+
+        <p>In order to see exactly how this works, let's say you have a protein sequence of length n:</p>
+        <p><code>S = [ S1 , S2, S3, …, Sn]</code></p>
+
+        <p>Where S is an amino acid. The probability of the whole sequence is the probability that you get S1, then S2, given S1, and then S3 given S2, and so on. This is what the model learns to estimate. And when you train a model, you want it to assign high probability (or likelihood) to real sequences from the data that the model is trained on. This means that the model is learning.</p>
+
+        <p>In order to maximize the probability that the model assigns, we adjust the model's parameters to make it as large as possible for the sequences in the training data. This is called the maximum likelihood estimation, and it looks something like this:</p>
+
+        <p><code>P(s₁) * P(s₂ | s₁) * P(s₃ | s₁, s₂) * … * P(sₙ | s₁,…,sₙ₋₁)</code></p>
+
+        <p>This model is super useful because it can be used to generate new proteins amino acid by amino acid, <em>and</em> you can assign a likelihood score to existing sequences which is useful for ranking how real or functional a designed sequence might be. Scientists can sample from the model to create libraries of proteins for wet lab testing.</p>
+
+        <h2>2. Masked Language Models (MLMs)</h2>
+
+        <p>These models are trained to fill in missing residues within a sequence. You mask out a few positions and ask the model to predict which amino acid goes there, using bidirectional context.</p>
+
+        <p><code>Input: M-E-[MASK]-A-G-[MASK]</code></p>
+
+        <p>In this way, the model sees the whole sequence and tries to predict the missing residues. They minimize energy loss on the masked positions, which looks something like this in a mathematical model:</p>
+
+        <p><code>P(sᵢ | s₁, …, sᵢ₋₁, [MASK], sᵢ₊₁, …, sₙ)</code> Where S is an amino acid.</p>
+
+        <p>This model learns general patterns about how proteins are built. One really cool thing: when you look at the attention maps from these models (basically a way of showing what parts of a protein the model thinks are important), they line up with what scientists call <em>residue-residue contact maps</em>.</p>
+
+        <p>A residue is just one building block of a protein — an amino acid. And a contact map shows which residues are physically close to each other when the protein folds into its 3D shape.</p>
+
+        <p>Even though the model is only trained on the protein's sequence (the list of amino acids), it <em>implicitly</em> learns how the protein will fold and which parts will touch each other — without being directly told!</p>
+
+        <p>That's powerful, because it means these models can be fine-tuned for all kinds of useful tasks, like predicting what a protein does, what happens if you mutate it, or figuring out the function of completely unknown sequences.</p>
+
+        <p>The backbone for all modern PLMs (and the backbone for GPT) is the Transformer. Instead of reading protein sequences one by one, Transformers look at the entire sequence at once to figure out which residues are important in a larger context. They excel at processing and understanding sequential data. However, each PLM uses the Transformer in different ways and for different functions (which I will dive into later in an article talking specifically about Transformers in NLPs!).</p>
+
+        <p>Just like large language models have changed how we interact with text, protein language models are starting to reshape how we interact with biology.</p>
+
+        <p>From understanding how proteins fold, to designing entirely new biological functions, PLMs are opening doors we couldn't even imagine a few years ago.</p>
+
+        <p>But what does it look like when these models move from research labs into real-world biotech companies?</p>
+
+        <p>In my next article, I'll dive into the startups that are leading this revolution — building the future of generative biology from the ground up. Stay tuned!</p>
     </article>
     <footer>&copy; 2024 Risa Garg</footer>
 </body>
